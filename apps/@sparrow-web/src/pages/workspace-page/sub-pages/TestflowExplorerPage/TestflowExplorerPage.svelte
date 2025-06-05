@@ -7,7 +7,7 @@
     WorkspaceDocument,
   } from "@app/database/database";
   import { testFlowDataStore } from "@sparrow/workspaces/features/testflow-explorer/store";
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import type { TFDataStoreType } from "@sparrow/common/types/workspace/testflow";
   import { isGuestUserActive, user } from "@app/store/auth.store";
   import { environmentType, WorkspaceRole } from "@sparrow/common/enums";
@@ -31,6 +31,9 @@
   let isGuestUser = false;
   let currentWorkspaceId = "";
   let currentWorkspace;
+  let planLimitTestFlowBlocks: number = 5;
+  let planLimitTestflow: number = 3;
+  let currentTestflowCount: number = 1;
 
   const environments = _viewModel.environments;
   const activeWorkspace = _viewModel.activeWorkspace;
@@ -157,6 +160,10 @@
     _viewModel.updateNameWithTestFlowList as any,
     1000,
   );
+  const handleTestflowCount = async () => {
+    const data = await _viewModel.fetchCountofTestFlow();
+    currentTestflowCount = data;
+  };
 
   let prevTabName = "";
   $: {
@@ -167,7 +174,7 @@
       prevTabName = tab.name;
       findUserRole();
     }
-
+    handleTestflowCount();
     if (environmentId || $environments || currentWorkspaceId) {
       refreshEnvironment();
     }
@@ -178,6 +185,18 @@
       targetUrl: constants.TESTFLOW_DOCS_URL,
     });
   };
+
+  const handleBlockLimitTestflow = async () => {
+    const planlimits = await _viewModel.userLimitBlockPerTestflow();
+    if (planlimits) {
+      planLimitTestFlowBlocks = planlimits?.blocksPerTestflow?.value || 5;
+      planLimitTestflow = planlimits?.testflowPerWorkspace?.value || 3;
+    }
+  };
+
+  onMount(() => {
+    handleBlockLimitTestflow();
+  });
 </script>
 
 {#if render}
@@ -210,5 +229,8 @@
     onPreviewExpression={_viewModel.handlePreviewExpression}
     redirectDocsTestflow={_viewModel.redirectDocsTestflow}
     {handleEventOnClickQuestionMark}
+    {planLimitTestFlowBlocks}
+    {planLimitTestflow}
+    testflowCount={currentTestflowCount}
   />
 {/if}

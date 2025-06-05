@@ -46,7 +46,12 @@ import { Events, ItemType } from "@sparrow/common/enums";
 import { AiAssistantWebSocketService } from "../../services/ai-assistant.ws.service";
 import constants from "src/constants/constants";
 import { SocketTabAdapter } from "@app/adapter/socket-tab";
+<<<<<<< HEAD
 import { RecentWorkspaceRepository } from "src/repositories/recent-workspace.repository";
+=======
+import { PlanRepository } from "src/repositories/plan.repository";
+import { PlanService } from "src/services/plan.service";
+>>>>>>> 090bd2fbd4398a78b4da6a8e6d879558d38915fd
 
 export class DashboardViewModel {
   constructor() {}
@@ -64,7 +69,12 @@ export class DashboardViewModel {
     AiAssistantWebSocketService.getInstance();
   private collectionRepository = new CollectionRepository();
   private testflowRepository = new TestflowRepository();
+<<<<<<< HEAD
   private recentWorkspaceRepository = new RecentWorkspaceRepository();
+=======
+  private planRepository = new PlanRepository();
+  private planService = new PlanService();
+>>>>>>> 090bd2fbd4398a78b4da6a8e6d879558d38915fd
 
   public getTeamData = async () => {
     return await this.teamRepository.getTeamData();
@@ -165,9 +175,11 @@ export class DashboardViewModel {
     if (!userId) return;
     const response = await this.teamService.fetchTeams(userId);
     let isAnyTeamsOpen: undefined | string = undefined;
+    const userPlans = [];
     if (response?.isSuccessful && response?.data?.data) {
       const data = [];
       for (const elem of response.data.data) {
+        userPlans.push(elem?.plan?.id.toString());
         const {
           _id,
           name,
@@ -181,6 +193,7 @@ export class DashboardViewModel {
           workspaces,
           owner,
           admins,
+          plan,
           createdAt,
           createdBy,
           updatedAt,
@@ -206,6 +219,7 @@ export class DashboardViewModel {
           workspaces: updatedWorkspaces,
           owner,
           admins,
+          plan,
           isActiveTeam: false,
           createdAt,
           createdBy,
@@ -215,6 +229,49 @@ export class DashboardViewModel {
           isOpen: isOpenTeam,
         };
         data.push(item);
+      }
+      
+      const planResponse =  await this.planService.getPlansByIds(
+        userPlans
+      );
+      
+      const parsedPlans =  []; 
+      if(response.isSuccessful && planResponse.data.data) {
+        for (const planData of planResponse.data.data) {
+          const rawData = planData;
+          if (!rawData?._id) continue;
+          const planDetails = {
+            planId: rawData._id,
+            name: rawData.name,
+            description: rawData.description,
+            active: rawData.active,
+            limits: {
+              workspacesPerHub: {
+                area: rawData.limits.workspacesPerHub.area,
+                value: rawData.limits.workspacesPerHub.value,
+              },
+              testflowPerWorkspace: {
+                area: rawData.limits.testflowPerWorkspace.area,
+                value: rawData.limits.testflowPerWorkspace.value,
+              },
+              blocksPerTestflow: {
+                area: rawData.limits.blocksPerTestflow.area,
+                value: rawData.limits.blocksPerTestflow.value,
+              },
+              selectiveTestflowRun: {
+                area: rawData.limits.selectiveTestflowRun.area,
+                active: rawData.limits.selectiveTestflowRun.active,
+              },
+            },
+            createdAt: rawData.createdAt,
+            updatedAt: rawData.updatedAt,
+            createdBy: rawData.createdBy,
+            updatedBy: rawData.updatedBy,
+          };
+          parsedPlans.push(planDetails);
+        } 
+        await this.planRepository.upsertMany(parsedPlans);
+
       }
 
       await this.teamRepository.bulkInsertData(data);
@@ -1225,7 +1282,11 @@ export class DashboardViewModel {
 
     let environment = await this.searchEnvironment(searchText);
     environment = environment.map((_environment) => {
+<<<<<<< HEAD
       const workspaceDetails = workspaceMap[_environment._data.workspaceId];
+=======
+      const workspaceDetails = workspaceMap[_value._data.workspaceId];
+>>>>>>> 090bd2fbd4398a78b4da6a8e6d879558d38915fd
       const path: string[] = [];
       if (workspaceDetails) {
         path.push(workspaceDetails.teamName);

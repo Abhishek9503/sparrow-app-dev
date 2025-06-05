@@ -19,8 +19,14 @@ import MixpanelEvent from "@app/utils/mixpanel/MixpanelEvent";
 import { Events } from "@sparrow/common/enums";
 import { WorkspaceService } from "@app/services/workspace.service";
 import { WorkspaceTabAdapter } from "@app/adapter/workspace-tab";
+<<<<<<< HEAD
 import { EnvironmentRepository } from "@app/repositories/environment.repository";
 import { TestflowRepository } from "@app/repositories/testflow.repository";
+=======
+import { PlanRepository } from "@app/repositories/plan.repository";
+import { PlanService } from "@app/services/plan.service";
+import constants from "@app/constants/constants";
+>>>>>>> 090bd2fbd4398a78b4da6a8e6d879558d38915fd
 
 export class TeamsViewModel {
   constructor() {}
@@ -32,6 +38,8 @@ export class TeamsViewModel {
   private githubService = new GithubService();
   private guestUserRepository = new GuestUserRepository();
   private workspaceService = new WorkspaceService();
+  private planRepository = new PlanRepository();
+  private planService = new PlanService();
 
   private collectionRepository = new CollectionRepository();
   private userService = new UserService();
@@ -69,9 +77,11 @@ export class TeamsViewModel {
     if (!userId) return;
     const response = await this.teamService.fetchTeams(userId);
     let isAnyTeamsOpen: undefined | string = undefined;
+    const userPlans = [];
     if (response?.isSuccessful && response?.data?.data) {
       const data = [];
       for (const elem of response.data.data) {
+        userPlans.push(elem?.plan?.id.toString());
         const {
           _id,
           name,
@@ -82,6 +92,7 @@ export class TeamsViewModel {
           linkedinUrl,
           description,
           logo,
+          plan,
           workspaces,
           owner,
           admins,
@@ -108,6 +119,7 @@ export class TeamsViewModel {
           users,
           description,
           logo,
+          plan,
           workspaces: updatedWorkspaces,
           owner,
           admins,
@@ -121,6 +133,49 @@ export class TeamsViewModel {
           invites,
         };
         data.push(item);
+      }
+      const planResponse =  await this.planService.getPlansByIds(
+        userPlans,
+        constants.API_URL,
+      );
+      
+      const parsedPlans =  []; 
+      if(response.isSuccessful && planResponse.data.data) {
+        for (const planData of planResponse.data.data) {
+          const rawData = planData;
+          if (!rawData?._id) continue;
+          const planDetails = {
+            planId: rawData._id,
+            name: rawData.name,
+            description: rawData.description,
+            active: rawData.active,
+            limits: {
+              workspacesPerHub: {
+                area: rawData.limits.workspacesPerHub.area,
+                value: rawData.limits.workspacesPerHub.value,
+              },
+              testflowPerWorkspace: {
+                area: rawData.limits.testflowPerWorkspace.area,
+                value: rawData.limits.testflowPerWorkspace.value,
+              },
+              blocksPerTestflow: {
+                area: rawData.limits.blocksPerTestflow.area,
+                value: rawData.limits.blocksPerTestflow.value,
+              },
+              selectiveTestflowRun: {
+                area: rawData.limits.selectiveTestflowRun.area,
+                active: rawData.limits.selectiveTestflowRun.active,
+              },
+            },
+            createdAt: rawData.createdAt,
+            updatedAt: rawData.updatedAt,
+            createdBy: rawData.createdBy,
+            updatedBy: rawData.updatedBy,
+          };
+          parsedPlans.push(planDetails);
+        } 
+        await this.planRepository.upsertMany(parsedPlans);
+
       }
 
       await this.teamRepository.bulkInsertData(data);
@@ -168,7 +223,11 @@ export class TeamsViewModel {
       await this.teamRepository.setOpenTeam(response.data.data?._id);
       notifications.success(`New hub ${team.name} is created.`);
     } else {
-      notifications.error("Failed to create hub. Please try again.");
+      if(response?.message === "Plan limit reached"){
+        notifications.error("Failed to create hub. please upgrade your plan.");
+      }else{
+        notifications.error("Failed to create hub. Please try again.");
+      }
     }
     MixpanelEvent(Events.CREATE_NEW_TEAM);
     return response;

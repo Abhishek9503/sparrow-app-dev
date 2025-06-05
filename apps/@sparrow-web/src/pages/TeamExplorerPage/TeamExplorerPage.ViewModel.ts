@@ -179,6 +179,7 @@ export class TeamExplorerPageViewModel {
           workspaces,
           owner,
           admins,
+          plan,
           createdAt,
           createdBy,
           updatedAt,
@@ -204,6 +205,7 @@ export class TeamExplorerPageViewModel {
           workspaces: updatedWorkspaces,
           owner,
           admins,
+          plan,
           isActiveTeam: false,
           createdAt,
           createdBy,
@@ -344,6 +346,8 @@ export class TeamExplorerPageViewModel {
       navigate("collections");
       notifications.success("New Workspace Created");
       MixpanelEvent(Events.Create_New_Workspace_TeamPage);
+    } else if (response?.data?.statusCode) {
+      notifications.error(response?.data?.message);
     }
   };
 
@@ -491,9 +495,13 @@ export class TeamExplorerPageViewModel {
         `Invite sent to ${_inviteBody.users.length} people for ${_teamName}.`,
       );
     } else {
-      notifications.error(
-        response?.message || "Failed to send invite. Please try again.",
-      );
+      if(response?.message === "Plan limit reached"){
+        notifications.error("Failed to send invite. please upgrade your plan.");
+      }else{
+        notifications.error(
+          response?.message || "Failed to send invite. Please try again.",
+        );
+      }
     }
     return response;
   };

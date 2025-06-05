@@ -181,7 +181,7 @@ const makeRequest = async (
     if (e.code === "ERR_NETWORK") {
       return error(e.message);
     } else if (e.response?.data) {
-      return error(e.response?.data?.message);
+      return error(e.response?.data?.message, e.response?.data);
     }
     return error(e);
   } finally {
@@ -850,9 +850,9 @@ const connectSocketIo = async (
 };
 
 /**
- * 
+ *
  * @param signal - AbortSignal to listen for abort events
- * @returns 
+ * @returns
  */
 const waitForAbort = (signal: AbortSignal): Promise<never> => {
   return new Promise((_, reject) => {
@@ -861,7 +861,7 @@ const waitForAbort = (signal: AbortSignal): Promise<never> => {
     }
 
     signal?.addEventListener("abort", () => {
-      reject(new Error("Aborted during request"));
+        reject(new Error("Aborted during request"));
     }, { once: true });
   });
 }
@@ -889,11 +889,11 @@ const makeHttpRequestV2 = async (
 
   try {
     const data = await Promise.race([invoke("make_http_request_v2", {
-      url,
-      method,
-      headers,
-      body,
-      request,
+        url,
+        method,
+        headers,
+        body,
+        request,
     }), waitForAbort(signal)])
     // Handle the response and update UI accordingly
     if (signal?.aborted) {

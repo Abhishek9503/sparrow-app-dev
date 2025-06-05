@@ -47,7 +47,12 @@ import { SocketTabAdapter } from "@app/adapter/socket-tab";
 import constants from "@app/constants/constants";
 import { open } from "@tauri-apps/plugin-shell";
 import { WorkspaceTabAdapter } from "@app/adapter/workspace-tab";
+<<<<<<< HEAD
 import { RecentWorkspaceRepository } from "@app/repositories/recent-workspace.repository";
+=======
+import { PlanRepository } from "@app/repositories/plan.repository";
+import { PlanService } from "@app/services/plan.service";
+>>>>>>> 090bd2fbd4398a78b4da6a8e6d879558d38915fd
 
 export class DashboardViewModel {
   constructor() {}
@@ -65,7 +70,12 @@ export class DashboardViewModel {
     AiAssistantWebSocketService.getInstance();
   private collectionRepository = new CollectionRepository();
   private testflowRepository = new TestflowRepository();
+<<<<<<< HEAD
   private recentWorkspaceRepository = new RecentWorkspaceRepository();
+=======
+  private planRepository = new PlanRepository();
+  private planService = new PlanService();
+>>>>>>> 090bd2fbd4398a78b4da6a8e6d879558d38915fd
 
   public getTeamData = async () => {
     return await this.teamRepository.getTeamData();
@@ -178,9 +188,11 @@ export class DashboardViewModel {
     if (!userId) return;
     const response = await this.teamService.fetchTeams(userId);
     let isAnyTeamsOpen: undefined | string = undefined;
+    const userPlans = [];
     if (response?.isSuccessful && response?.data?.data) {
       const data = [];
       for (const elem of response.data.data) {
+        userPlans.push(elem?.plan?.id.toString());
         const {
           _id,
           name,
@@ -193,6 +205,7 @@ export class DashboardViewModel {
           logo,
           workspaces,
           owner,
+          plan,
           admins,
           createdAt,
           createdBy,
@@ -218,6 +231,7 @@ export class DashboardViewModel {
           logo,
           workspaces: updatedWorkspaces,
           owner,
+          plan,
           admins,
           isActiveTeam: false,
           createdAt,
@@ -229,6 +243,51 @@ export class DashboardViewModel {
         };
         data.push(item);
       }
+    
+      
+        const planResponse =  await this.planService.getPlansByIds(
+          userPlans,
+          constants.API_URL,
+        );
+        
+        const parsedPlans =  []; 
+        if(response.isSuccessful && planResponse.data.data) {
+          for (const planData of planResponse.data.data) {
+            const rawData = planData;
+            if (!rawData?._id) continue;
+            const planDetails = {
+              planId: rawData._id,
+              name: rawData.name,
+              description: rawData.description,
+              active: rawData.active,
+              limits: {
+                workspacesPerHub: {
+                  area: rawData.limits.workspacesPerHub.area,
+                  value: rawData.limits.workspacesPerHub.value,
+                },
+                testflowPerWorkspace: {
+                  area: rawData.limits.testflowPerWorkspace.area,
+                  value: rawData.limits.testflowPerWorkspace.value,
+                },
+                blocksPerTestflow: {
+                  area: rawData.limits.blocksPerTestflow.area,
+                  value: rawData.limits.blocksPerTestflow.value,
+                },
+                selectiveTestflowRun: {
+                  area: rawData.limits.selectiveTestflowRun.area,
+                  active: rawData.limits.selectiveTestflowRun.active,
+                },
+              },
+              createdAt: rawData.createdAt,
+              updatedAt: rawData.updatedAt,
+              createdBy: rawData.createdBy,
+              updatedBy: rawData.updatedBy,
+            };
+            parsedPlans.push(planDetails);
+          } 
+          await this.planRepository.upsertMany(parsedPlans);
+
+        }
 
       await this.teamRepository.bulkInsertData(data);
       await this.teamRepository.deleteOrphanTeams(

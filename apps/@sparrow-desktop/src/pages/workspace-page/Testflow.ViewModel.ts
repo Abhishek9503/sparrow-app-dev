@@ -146,10 +146,16 @@ export class TestflowViewModel {
               blockName: "startBlock",
             },
           },
+<<<<<<< HEAD
         ],
       },
       baseUrl,
     );
+=======
+          
+        ],
+    }, baseUrl);
+>>>>>>> 090bd2fbd4398a78b4da6a8e6d879558d38915fd
     if (response.isSuccessful && response.data.data) {
       const res = response.data.data;
 
@@ -178,6 +184,8 @@ export class TestflowViewModel {
         isFirstTimeInTestFlow.set(false);
       }
       return;
+    } else if (response?.data?.statusCode) {
+      notifications.error(response?.data?.message);
     } else {
       notifications.error("Failed to create testflow. Please try again.");
     }

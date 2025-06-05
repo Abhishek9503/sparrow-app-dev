@@ -147,9 +147,13 @@ export class TestflowViewModel {
             },
           },
         ],
+<<<<<<< HEAD
       },
       baseUrl,
     );
+=======
+    }, baseUrl);
+>>>>>>> 090bd2fbd4398a78b4da6a8e6d879558d38915fd
     if (response.isSuccessful && response.data.data) {
       const res = response.data.data;
 
@@ -178,6 +182,8 @@ export class TestflowViewModel {
         isFirstTimeInTestFlow.set(false);
       }
       return;
+    } else if (response?.data?.statusCode) {
+      notifications.error(response?.data?.message);
     } else {
       notifications.error("Failed to create testflow. Please try again.");
     }
@@ -396,9 +402,13 @@ export class TestflowViewModel {
     const activeWorkspace = await this.workspaceRepository.readWorkspace(
       currentTestflow?.path?.workspaceId as string,
     );
+<<<<<<< HEAD
     const unadaptedTestflow = new TestflowTabAdapter().unadapt(
       currentTestflow as Tab,
     ); // Adapt the testflow tab
+=======
+    const unadaptedTestflow = new TestflowTabAdapter().unadapt(currentTestflow as Tab); // Adapt the testflow tab
+>>>>>>> 090bd2fbd4398a78b4da6a8e6d879558d38915fd
 
     const guestUser = await this.guestUserRepository.findOne({
       name: "guestUser",
