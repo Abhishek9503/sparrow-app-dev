@@ -9,7 +9,7 @@
 <div class="text-fs-14 pt-3">
   <div>
     <p style=" color: var(--text-ds-neutral-100); " class="text-fs-14">
-      You're j ust one step away! To complete your upgrade and unlock full
+      You're just one step away! To complete your upgrade and unlock full
       access to all features, you will be redirected to the Admin Panel where
       you can securely make your payment and activate your plan.
     </p>
