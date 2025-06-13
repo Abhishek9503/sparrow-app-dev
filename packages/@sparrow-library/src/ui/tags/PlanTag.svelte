@@ -4,22 +4,21 @@
   export let size: "small" | "medium" = "small";
   let height = size === "medium" ? 20 : 18;
 
-  // Color palette for each plan
   const planPalette = {
     community: {
-      bg: "#2A2C32",
-      border: "#62656A",
-      text: "#B6B7B9",
+      bg: "var(--bg-ds-neutral-700)",
+      border: "var(--border-ds-neutral-500)",
+      text: "var( --text-ds-neutral-200)",
     },
     standard: {
-      bg: "#110D2E",
-      border: "#2C2073",
-      text: "#A394FF",
+      bg: "var(--bg-ds-secondary-900)",
+      border: "var(--border-ds-secondary-700)",
+      text: "var(--bg-ds-secondary-200)",
     },
     professional: {
-      bg: "#0F2024",
-      border: "#214D5E",
-      text: "#5EC5ED",
+      bg: "var(--bg-ds-info-900)",
+      border: "var(--text-ds-info-700)",
+      text: "var(--text-ds-info-300)",
     },
   };
 
