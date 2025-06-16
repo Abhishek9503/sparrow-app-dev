@@ -114,6 +114,8 @@
   let currentTeamId = "";
   let selectedType = "";
   let currentWorkspaceCount = 1;
+  let currentTeamPlan: any = null;
+
   const activeWorkspaceSubscribe = activeWorkspace.subscribe(
     async (value: WorkspaceDocument) => {
       const activeWorkspaceRxDoc = value;
@@ -149,6 +151,7 @@
     },
   );
 
+  // const planName = _viewModel.getpLanusing(currentTeamId) //
   const handlegetWorkspaceCount = async (teamId: string) => {
     currentWorkspaceCount = await _viewModel.getWorkspaceCount(teamId);
   };
@@ -604,6 +607,16 @@
       planContent = planInfoByRole(userRole);
     }
   }
+  
+  // const fetchCurrentTeamPlan = async (teamId: string) => {
+  //   const planData = await _viewModel.getCurrentTeamPlan(teamId);
+  //   currentTeamPlan = planData ? { ...planData } : null;
+  // };
+
+  // $: if (currentTeamId) {
+  //   fetchCurrentTeamPlan(currentTeamId);
+  //   console.log("This is curent TEM plan " , currentTeamPlan)
+  // }
 </script>
 
 {#if isGlobalSearchOpen && !hideGlobalSearch}
@@ -676,10 +689,11 @@
     />
   {/if}
 
-  {#if userRole === TeamRole.TEAM_ADMIN || userRole === TeamRole.TEAM_OWNER}
-    <UpgradePlanBanner bind:isUpgradePlanModelOpen />
-  {/if}
-
+  <div class="banner-container">
+    {#if (userRole === TeamRole.TEAM_ADMIN || userRole === TeamRole.TEAM_OWNER) && currentTeamPlan?.name?.toLowerCase() === "community"}
+      <UpgradePlanBanner bind:isUpgradePlanModelOpen />
+    {/if}
+  </div>
   <!-- 
     -- Guest Login Banner - shows login option to guest users.
     -->
@@ -699,6 +713,7 @@
     <!-- 
       --Sidebar to naviagte between collection, environment and help page.
     -->
+
     <Sidebar
       {user}
       {sidebarItems}
@@ -845,4 +860,11 @@
     max-width: 600px;
     margin: 0 auto;
   }
+
+  .banner-container {
+    position: relative;
+    width: 100%;
+    z-index: 1;
+  }
+  
 </style>

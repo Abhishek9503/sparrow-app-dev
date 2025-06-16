@@ -1185,4 +1185,18 @@ export class DashboardViewModel {
   public handleContactSales = async () => {
     await open(`${constants.MARKETING_URL}/pricing/`);
   };
+
+  /**
+   * Get the current team's plan data including name, limits, and other details
+   * @param teamId - The ID of the team to get plan data for
+   * @returns The complete plan data for the team, or undefined if not found
+   */
+  public getCurrentTeamPlan = async (teamId: string) => {
+    const teamDetails = await this.teamRepository.getTeamDoc(teamId);
+    const currentPlan = teamDetails?.toMutableJSON().plan;
+    if (currentPlan) {
+      return currentPlan;
+    }
+    return undefined;
+  };
 }
